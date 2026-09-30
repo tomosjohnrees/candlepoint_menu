@@ -12,6 +12,7 @@ from pathlib import Path
 from urllib.error import URLError
 
 import rumps
+from AppKit import NSApplication, NSApplicationActivationPolicyAccessory
 from PyObjCTools import AppHelper
 
 from scanner import (MAX_SAFE_UNIVERSE, SERVER, ScannerService, get_state,
@@ -146,5 +147,7 @@ class CandlepointMenu(rumps.App):
 
 
 if __name__ == "__main__":
+    # A menu bar utility should not claim a Dock tile or appear in Cmd-Tab.
+    NSApplication.sharedApplication().setActivationPolicy_(NSApplicationActivationPolicyAccessory)
     APP = CandlepointMenu()
     APP.run()
