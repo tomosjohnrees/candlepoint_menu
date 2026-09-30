@@ -71,8 +71,15 @@ private final class MenuApp: NSObject, NSApplicationDelegate, UNUserNotification
             return
         }
         let root = Bundle.main.bundleURL.deletingLastPathComponent().deletingLastPathComponent()
-        let directory = ProcessInfo.processInfo.environment["CANDLEPOINT_TRADING_DIR"]
-            .map(URL.init(fileURLWithPath:)) ?? root.appendingPathComponent("trading")
+        let directory: URL
+        if let configured = ProcessInfo.processInfo.environment["CANDLEPOINT_TRADING_DIR"] {
+            directory = URL(fileURLWithPath: configured)
+        } else {
+            let candidates = ["trading", "candlepoint"].map(root.appendingPathComponent)
+            directory = candidates.first {
+                FileManager.default.fileExists(atPath: $0.appendingPathComponent("app.py").path)
+            } ?? candidates[0]
+        }
         let script = directory.appendingPathComponent("app.py")
         guard FileManager.default.fileExists(atPath: script.path) else {
             setStatus("Scanner unavailable — start Candlepoint")

@@ -4,13 +4,16 @@ A native Swift menu bar app for [Candlepoint](https://github.com/tomosjohnrees/c
 
 ## Install and start
 
-Requires macOS 13 or later, Xcode or Swift command line tools, and the Candlepoint `trading` repository beside this repository. Build once:
+Requires macOS 13 or later, Xcode or Swift command line tools, and the [Candlepoint scanner](https://github.com/tomosjohnrees/candlepoint). Clone both repositories into the same parent directory and build:
 
 ```sh
+git clone https://github.com/tomosjohnrees/candlepoint.git
+git clone https://github.com/tomosjohnrees/candlepoint_menu.git
+cd candlepoint_menu
 ./build_app.command
 ```
 
-Then double-click **Candlepoint Menu.app**. Look for **CP** on the right side of the menu bar. `start.command` builds the app if needed and launches it. Allow notifications for Candlepoint Menu if macOS prompts. The app uses Candlepoint at `http://127.0.0.1:8765`. If it is already running there, the menu connects to it. Otherwise it starts the sibling Python scanner and stops that scanner when you quit.
+Then double-click **Candlepoint Menu.app**. Look for **CP** on the right side of the menu bar. `start.command` builds the app if needed and launches it. Allow notifications for Candlepoint Menu if macOS prompts. The app uses Candlepoint at `http://127.0.0.1:8765`. If it is already running there, the menu connects to it. Otherwise it starts a sibling scanner named `candlepoint` or `trading` and stops that scanner when you quit.
 
 The menu checks the local scanner every 15 seconds. Once the last successful scan is ten minutes old, it requests another scan. It waits for the scan to finish before showing new signals. The first scan establishes a baseline, so existing signals do not flood Notification Center. A saved scan cursor prevents repeat alerts after a restart.
 
