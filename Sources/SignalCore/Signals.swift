@@ -94,3 +94,35 @@ public final class SignalStore {
         return current.filter(\.isNew)
     }
 }
+
+public final class UnreadSignals {
+    private var keys: [String] = []
+
+    public init() {}
+
+    public var count: Int { keys.count }
+
+    public func contains(_ key: String) -> Bool { keys.contains(key) }
+
+    public func record(_ fresh: [Signal], current: [Signal]) {
+        let currentKeys = Set(current.map(\.key))
+        keys.removeAll { !currentKeys.contains($0) }
+        var unreadKeys = Set(keys)
+        let additions = fresh.map(\.key).filter { currentKeys.contains($0) && unreadKeys.insert($0).inserted }
+        keys.insert(contentsOf: additions, at: 0)
+    }
+
+    public func signals(from current: [Signal]) -> [Signal] {
+        let byKey = Dictionary(current.map { ($0.key, $0) }, uniquingKeysWith: { first, _ in first })
+        return keys.compactMap { byKey[$0] }
+    }
+
+    public func markSeen(_ key: String) { keys.removeAll { $0 == key } }
+
+    public func markSeen(symbol: String, current: [Signal]) {
+        let matchingKeys = Set(current.filter { $0.symbol == symbol }.map(\.key))
+        keys.removeAll { matchingKeys.contains($0) }
+    }
+
+    public func markAllSeen() { keys.removeAll() }
+}

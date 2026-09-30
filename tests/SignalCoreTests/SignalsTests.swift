@@ -44,4 +44,35 @@ final class SignalsTests: XCTestCase {
         changed["matches"] = [["symbol": "../bad", "stage": "Near breakout"]]
         XCTAssertTrue(ScanState.signals(in: changed).isEmpty)
     }
+
+    func testUnreadSignalsStayRecentAndDisappearWhenNoLongerCurrent() {
+        let unread = UnreadSignals()
+        var payload = state("2026-09-30T12:00:00+00:00")
+        let first = ScanState.signals(in: payload)[0]
+        payload["watchlist"] = [["symbol": "FETUSDT"]]
+        let second = ScanState.signals(in: payload).last!
+
+        unread.record([first], current: [first])
+        unread.record([second, second], current: [first, second])
+        XCTAssertEqual(unread.signals(from: [first, second]).map(\.key), [second.key, first.key])
+        XCTAssertEqual(unread.count, 2)
+
+        unread.markSeen(first.key)
+        XCTAssertEqual(unread.signals(from: [first, second]).map(\.key), [second.key])
+        unread.record([], current: [first])
+        XCTAssertEqual(unread.count, 0)
+    }
+
+    func testOpeningSymbolClearsAllItsUnreadSignals() {
+        let unread = UnreadSignals()
+        var payload = state("2026-09-30T12:00:00+00:00")
+        payload["key_levels"] = [["symbol": "NEARUSDT", "level_signal": "Crossed above"]]
+        payload["watchlist"] = [["symbol": "FETUSDT"]]
+        let current = ScanState.signals(in: payload)
+        unread.record(current, current: current)
+        unread.markSeen(symbol: "NEARUSDT", current: current)
+        XCTAssertEqual(unread.signals(from: current).map(\.symbol), ["FETUSDT"])
+        unread.markAllSeen()
+        XCTAssertEqual(unread.count, 0)
+    }
 }

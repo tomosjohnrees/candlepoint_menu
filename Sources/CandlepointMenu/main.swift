@@ -23,7 +23,7 @@ private final class MenuApp: NSObject, NSApplicationDelegate, UNUserNotification
     private var timer: Timer?
     private var scanner: Process?
     private let store = SignalStore()
-    private var unread = Set<String>()
+    private let unread = UnreadSignals()
     private var status = "Starting…"
     private var polling = false
     private var lastRequestedScan: String?
@@ -111,8 +111,8 @@ private final class MenuApp: NSObject, NSApplicationDelegate, UNUserNotification
 
     private func handle(_ state: [String: Any]) {
         let fresh = store.update(state)
+        unread.record(fresh, current: store.signals)
         for signal in fresh {
-            unread.insert(signal.key)
             let content = UNMutableNotificationContent()
             content.title = "New Candlepoint signal"
             content.subtitle = signal.symbol
@@ -162,17 +162,25 @@ private final class MenuApp: NSObject, NSApplicationDelegate, UNUserNotification
         let menu = NSMenu()
         menu.addItem(NSMenuItem(title: status, action: nil, keyEquivalent: ""))
         menu.addItem(.separator())
+        let newSignals = unread.signals(from: store.signals)
+        if !newSignals.isEmpty {
+            menu.addItem(NSMenuItem(title: "New signals (\(newSignals.count))", action: nil, keyEquivalent: ""))
+            for signal in newSignals {
+                menu.addItem(signalItem(signal, marked: true))
+            }
+            let markSeen = NSMenuItem(title: "Mark all as seen", action: #selector(markAllSeen), keyEquivalent: "")
+            markSeen.target = self
+            menu.addItem(markSeen)
+            menu.addItem(.separator())
+            menu.addItem(NSMenuItem(title: "All signals", action: nil, keyEquivalent: ""))
+        }
         for group in ScanState.groups {
             let matches = store.signals.filter { $0.group == group.key }
             guard !matches.isEmpty else { continue }
             let heading = NSMenuItem(title: "\(group.title) (\(matches.count))", action: nil, keyEquivalent: "")
             let submenu = NSMenu()
             for signal in matches {
-                let marker = unread.contains(signal.key) ? "● " : ""
-                let item = NSMenuItem(title: marker + signal.label, action: #selector(openSignal(_:)), keyEquivalent: "")
-                item.target = self
-                item.representedObject = ["symbol": signal.symbol, "key": signal.key]
-                submenu.addItem(item)
+                submenu.addItem(signalItem(signal, marked: unread.contains(signal.key)))
             }
             heading.submenu = submenu
             menu.addItem(heading)
@@ -191,22 +199,35 @@ private final class MenuApp: NSObject, NSApplicationDelegate, UNUserNotification
         quit.target = self
         menu.addItem(quit)
         statusItem.menu = menu
-        statusItem.button?.title = unread.isEmpty ? "CP" : "CP • \(unread.count)"
+        statusItem.button?.title = unread.count == 0 ? "CP" : "CP • \(unread.count)"
+    }
+
+    private func signalItem(_ signal: Signal, marked: Bool) -> NSMenuItem {
+        let item = NSMenuItem(title: (marked ? "● " : "") + signal.label,
+                              action: #selector(openSignal(_:)), keyEquivalent: "")
+        item.target = self
+        item.representedObject = ["symbol": signal.symbol, "key": signal.key]
+        return item
     }
 
     @objc private func openSignal(_ sender: NSMenuItem) {
         guard let info = sender.representedObject as? [String: String],
               let symbol = info["symbol"] else { return }
-        if let key = info["key"] { unread.remove(key) }
+        if let key = info["key"] { unread.markSeen(key) }
         renderMenu()
         openSymbol(symbol)
     }
 
     private func openSymbol(_ symbol: String) {
         guard let signal = store.signals.first(where: { $0.symbol == symbol }) else { return }
-        unread.subtract(store.signals.filter { $0.symbol == symbol }.map(\.key))
+        unread.markSeen(symbol: symbol, current: store.signals)
         renderMenu()
         NSWorkspace.shared.open(signal.url)
+    }
+
+    @objc private func markAllSeen() {
+        unread.markAllSeen()
+        renderMenu()
     }
 
     @objc private func openDashboard() { NSWorkspace.shared.open(server) }

@@ -15,7 +15,7 @@ cd candlepoint_menu
 
 Then double-click **Candlepoint Menu.app**. Look for **CP** on the right side of the menu bar. `start.command` builds the app if needed and launches it. Allow notifications for Candlepoint Menu if macOS prompts. The app uses Candlepoint at `http://127.0.0.1:8765`. If it is already running there, the menu connects to it. Otherwise it starts a sibling scanner named `candlepoint` or `trading` and stops that scanner when you quit.
 
-The menu checks the local scanner every 15 seconds. Once the last successful scan is ten minutes old, it requests another scan. It waits for the scan to finish before showing new signals. The first scan establishes a baseline, so existing signals do not flood Notification Center. A saved scan cursor prevents repeat alerts after a restart.
+The menu checks the local scanner every 15 seconds. Once the last successful scan is ten minutes old, it requests another scan. It waits for the scan to finish before showing new signals. Unread signals appear at the top of the menu under **New signals**, with a direct link to each coin page. Select one to clear it, or use **Mark all as seen**. Signals that disappear from a later scan leave the unread list. The first scan establishes a baseline, so existing signals do not flood Notification Center. A saved scan cursor prevents repeat alerts after a restart.
 
 ## Binance request budget
 
