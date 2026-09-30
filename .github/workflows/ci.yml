@@ -1,0 +1,27 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  macos:
+    runs-on: macos-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - name: Run Swift tests
+        run: swift test
+      - name: Build and verify app bundle
+        run: |
+          ./build_app.command
+          test -x 'Candlepoint Menu.app/Contents/MacOS/CandlepointMenu'
+          codesign --verify --deep --strict 'Candlepoint Menu.app'
