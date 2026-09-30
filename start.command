@@ -1,8 +1,7 @@
 #!/bin/zsh
 set -e
 cd "${0:A:h}"
-if [[ ! -x .venv/bin/python ]]; then
-  python3 -m venv .venv
+if [[ ! -x 'Candlepoint Menu.app/Contents/MacOS/CandlepointMenu' ]]; then
+  ./build_app.command
 fi
-.venv/bin/python -m pip install -q -r requirements.txt
 open "Candlepoint Menu.app"

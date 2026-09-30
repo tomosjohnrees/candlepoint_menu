@@ -1,18 +1,18 @@
 # Candlepoint Menu
 
-A macOS menu bar companion for [Candlepoint](https://github.com/tomosjohnrees/candlepoint). It shows current signals by category, marks new ones in the menu bar, sends a macOS notification for each new signal, and opens the signal's Candlepoint coin page when you click a menu item or its notification. It runs as an accessory app, so it has no Dock icon.
+A native Swift menu bar app for [Candlepoint](https://github.com/tomosjohnrees/candlepoint). It shows current signals by category, marks new ones in the menu bar, sends macOS notifications, and opens the signal's Candlepoint coin page when you click a menu item or notification. It has no Dock icon.
 
-## Start
+## Install and start
 
-Keep this repository beside the `trading` repository, or set `CANDLEPOINT_TRADING_DIR` to the directory containing Candlepoint's `app.py`. Double-click **Candlepoint Menu.app** to launch without opening Terminal or showing a Dock icon. You can also run:
+Requires macOS 13 or later, Xcode or Swift command line tools, and the Candlepoint `trading` repository beside this repository. Build once:
 
 ```sh
-./start.command
+./build_app.command
 ```
 
-The first launch creates `.venv` and installs `rumps` and PyObjC. Allow notifications for Python if macOS prompts. The app uses Candlepoint at `http://127.0.0.1:8765`. If it is already running there, the menu connects to it. Otherwise the menu starts the sibling scanner itself and stops that scanner when you quit.
+Then double-click **Candlepoint Menu.app**. Look for **CP** on the right side of the menu bar. `start.command` builds the app if needed and launches it. Allow notifications for Candlepoint Menu if macOS prompts. The app uses Candlepoint at `http://127.0.0.1:8765`. If it is already running there, the menu connects to it. Otherwise it starts the sibling Python scanner and stops that scanner when you quit.
 
-The menu checks the local scanner every 15 seconds. Once the last successful scan is ten minutes old, it requests another scan. It waits for the scan to finish before showing new signals. The first scan establishes a baseline, so existing signals do not flood Notification Center. A small cursor file in `~/Library/Application Support/Candlepoint Menu/` prevents repeat alerts after a restart.
+The menu checks the local scanner every 15 seconds. Once the last successful scan is ten minutes old, it requests another scan. It waits for the scan to finish before showing new signals. The first scan establishes a baseline, so existing signals do not flood Notification Center. A saved scan cursor prevents repeat alerts after a restart.
 
 ## Binance request budget
 
@@ -23,5 +23,5 @@ Binance documentation: [request limits](https://developers.binance.com/en/docs/p
 ## Development
 
 ```sh
-python3 -m unittest discover -s tests -v
+swift test
 ```
