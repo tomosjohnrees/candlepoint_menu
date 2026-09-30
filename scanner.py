@@ -13,7 +13,7 @@ from urllib.request import Request, urlopen
 
 SERVER = "http://127.0.0.1:8765"
 SCAN_INTERVAL_SECONDS = 600
-MAX_SAFE_UNIVERSE = 1000
+MAX_SAFE_UNIVERSE = 600
 
 
 def get_state(server: str = SERVER) -> dict:
@@ -34,6 +34,8 @@ def should_request_scan(payload: dict, now: datetime) -> bool:
         return False
     universe = payload.get("universe")
     if not isinstance(universe, int) or isinstance(universe, bool) or not 0 < universe <= MAX_SAFE_UNIVERSE:
+        return False
+    if payload.get("errors"):
         return False
     if "429" in str(payload.get("last_error", "")) or "418" in str(payload.get("last_error", "")):
         return False
@@ -64,7 +66,8 @@ class ScannerService:
         if not script.is_file():
             raise FileNotFoundError(f"Candlepoint scanner not found at {script}")
         environment = os.environ.copy()
-        environment.update(PORT="8765", SCAN_INTERVAL_SECONDS="600", MAX_SYMBOLS="400")
+        # The menu requests scans; the scanner's own fallback timer is deliberately slower.
+        environment.update(PORT="8765", SCAN_INTERVAL_SECONDS="7200", MAX_SYMBOLS="300")
         self.process = subprocess.Popen(
             [sys.executable, str(script)], cwd=self.trading_dir, env=environment,
             stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,

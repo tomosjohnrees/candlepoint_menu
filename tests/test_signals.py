@@ -50,6 +50,9 @@ class SignalTests(unittest.TestCase):
         payload["last_error"] = "HTTP Error 429"
         self.assertFalse(should_request_scan(payload, now))
         payload["last_error"] = None
+        payload["errors"] = 1
+        self.assertFalse(should_request_scan(payload, now))
+        payload["errors"] = 0
         payload["updated_at"] = "2026-09-30T12:01:00+00:00"
         self.assertFalse(should_request_scan(payload, now))
 
